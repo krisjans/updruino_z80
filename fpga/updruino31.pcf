@@ -1,0 +1,23 @@
+set_io z80_a[0]   2
+set_io z80_a[1]  46
+set_io z80_a[2]  47
+set_io z80_a[3]  45
+set_io z80_a[4]  48
+set_io z80_a[5]   3
+set_io z80_a[6]   4
+set_io z80_a[7]  44
+set_io z80_a[8]   6
+set_io z80_a[9]   9
+set_io z80_a[10] 11
+set_io z80_a[11] 18
+set_io z80_a[12] 19
+set_io z80_a[13] 13
+set_io z80_a[14] 21
+set_io z80_a[15] 12
+set_io z80_wr    28
+set_io z80_rd    38
+set_io z80_iorq  42
+set_io z80_mreq  36
+set_io z80_m1    43
+
+set_io test_led   10

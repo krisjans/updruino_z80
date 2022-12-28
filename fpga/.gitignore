@@ -1,0 +1,5 @@
+*.json
+*.asc
+*.bin
+*.out
+.sconsign.dblite
