@@ -13,6 +13,10 @@ module z80_addr_decode (input [15:0] z80_a,
                         input spi_si,
                         output spi_so);
 
+    wire clk;
+    SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
+    defparam inthosc.CLKHF_DIV = "0b01";
+
     localparam Z80_IO_ADDR = 16'd12345;
     localparam D_IN = 1'b1; // from Z80 to FPGA
     localparam D_OUT = 1'b0; // from FPGA to Z80
@@ -180,10 +184,6 @@ module z80_addr_decode (input [15:0] z80_a,
         spi_old_ss = 0;
         spi_sm_state = SM_SET_SPICR0;
     end
-
-    wire clk;
-    SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
-    defparam inthosc.CLKHF_DIV = "0b01";
 
     always @(posedge clk)
     begin
