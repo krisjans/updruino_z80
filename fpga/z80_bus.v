@@ -47,8 +47,7 @@ module z80_addr_decode (input [15:0] z80_a,
 
     wire ioAddr = z80_iorq == 1'b0
                   && z80_mreq == 1'b1
-                  && z80_m1 == 1'b1
-                  && (z80_rd == 1'b0 || z80_wr == 1'b0);
+                  && z80_m1 == 1'b1;
     wire myIoAddr0 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd0);
     wire myIoAddr1 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd2);
     wire myIoAddr2 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd4);
@@ -68,20 +67,18 @@ module z80_addr_decode (input [15:0] z80_a,
                             : myIoAddr7 == 1'b1 ? spi_to_z80[7]
                             : 8'hff;
 
-    wire mustWriteToZ80 = z80_rd == 1'b0
-                          && z80_wr == 1'b1
-                          && (myIoAddr0 == 1'b1
-                              || myIoAddr1 == 1'b1
-                              || myIoAddr2 == 1'b1
-                              || myIoAddr3 == 1'b1
-                              || myIoAddr4 == 1'b1
-                              || myIoAddr5 == 1'b1
-                              || myIoAddr6 == 1'b1
-                              || myIoAddr7 == 1'b1);
+    wire myIoAddr = myIoAddr0 == 1'b1
+                    || myIoAddr1 == 1'b1
+                    || myIoAddr2 == 1'b1
+                    || myIoAddr3 == 1'b1
+                    || myIoAddr4 == 1'b1
+                    || myIoAddr5 == 1'b1
+                    || myIoAddr6 == 1'b1
+                    || myIoAddr7 == 1'b1;
 
-    assign z80_d_dir = mustWriteToZ80 ? D_OUT : D_IN;
+    assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? D_OUT : D_IN;
 
-    assign z80_d = mustWriteToZ80 ? (z80_d_out) : 8'bZ;
+    assign z80_d = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? (z80_d_out) : 8'bZ;
 
     always @(posedge clk)
     begin
