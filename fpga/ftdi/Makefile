@@ -9,20 +9,22 @@ ftdi_eeprom_read.bin:
 
 read_ftdi_eeprom: ftdi_eeprom_read.bin
 
-set_ftdi_battery_charge_detection_enable: ftdi_eeprom_read.bin
+set_ftdi_self_powered_and_bcd: ftdi_eeprom_read.bin
 	echo "filename=ftdi_eeprom_write.bin" > ftdi_write_eeprom.conf
 	echo "user_data_addr=0" >> ftdi_write_eeprom.conf
 	echo "user_data_file=ftdi_eeprom_patched.bin" >> ftdi_write_eeprom.conf
 	cp ftdi_eeprom_read.bin ftdi_eeprom_patched.bin
-	/usr/bin/printf '\x11' | dd conv=notrunc of=ftdi_eeprom_patched.bin bs=1 seek=0
+	/usr/bin/printf '\x51' | dd conv=notrunc of=ftdi_eeprom_patched.bin bs=1 seek=0
+	/usr/bin/printf '\xC0' | dd conv=notrunc of=ftdi_eeprom_patched.bin bs=1 seek=8
 	ftdi_eeprom --device $(FTDI_USB_VID_DID) --verbose --build-eeprom --flash-eeprom ftdi_write_eeprom.conf
 
-set_ftdi_battery_charge_detection_disable: ftdi_eeprom_read.bin
+set_ftdi_usb_powered: ftdi_eeprom_read.bin
 	echo "filename=ftdi_eeprom_write.bin" > ftdi_write_eeprom.conf
 	echo "user_data_addr=0" >> ftdi_write_eeprom.conf
 	echo "user_data_file=ftdi_eeprom_patched.bin" >> ftdi_write_eeprom.conf
 	cp ftdi_eeprom_read.bin ftdi_eeprom_patched.bin
 	/usr/bin/printf '\x10' | dd conv=notrunc of=ftdi_eeprom_patched.bin bs=1 seek=0
+	/usr/bin/printf '\x80' | dd conv=notrunc of=ftdi_eeprom_patched.bin bs=1 seek=8
 	ftdi_eeprom --device $(FTDI_USB_VID_DID) --verbose --build-eeprom --flash-eeprom ftdi_write_eeprom.conf
 
 set_ftdi_upduino3_1:
