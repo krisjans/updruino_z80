@@ -34,15 +34,15 @@ module z80_addr_decode (input [15:0] z80_a,
         spi_to_z80[5] <= 8'd166;
         spi_to_z80[6] <= 8'd177;
         spi_to_z80[7] <= 8'd188;
-        z80_to_spi[0] <= 8'h11;
-        z80_to_spi[1] <= 8'h22;
-        z80_to_spi[2] <= 8'h33;
-        z80_to_spi[3] <= 8'h44;
-        z80_to_spi[4] <= 8'h55;
-        z80_to_spi[5] <= 8'h66;
-        z80_to_spi[6] <= 8'h77;
-        z80_to_spi[7] <= 8'h88;
         test_led <= 1'b1;
+        z80_to_spi[0] <= 8'd11;
+        z80_to_spi[1] <= 8'd22;
+        z80_to_spi[2] <= 8'd33;
+        z80_to_spi[3] <= 8'd44;
+        z80_to_spi[4] <= 8'd55;
+        z80_to_spi[5] <= 8'd66;
+        z80_to_spi[6] <= 8'd77;
+        z80_to_spi[7] <= 8'd88;
     end
 
     wire ioAddr = z80_iorq == 1'b0
