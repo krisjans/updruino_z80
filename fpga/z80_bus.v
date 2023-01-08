@@ -1,4 +1,4 @@
-module z80_addr_decode (input [15:0] z80_a,
+module z80_addr_decode_top (input [15:0] z80_a,
                         inout [7:0] z80_d,
                         input z80_rd,
                         input z80_wr,
@@ -7,7 +7,7 @@ module z80_addr_decode (input [15:0] z80_a,
                         input z80_mreq,
                         output reg z80_d_oe,
                         output z80_d_dir,
-                        output reg test_led,
+                        output reg z80_romcs,
                         input spi_sck,
                         input spi_ss,
                         input spi_si,
@@ -17,7 +17,31 @@ module z80_addr_decode (input [15:0] z80_a,
     SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
     defparam inthosc.CLKHF_DIV = "0b01";
 
+    wire [7:0] data_rom;
+    wire [7:0] data_ram;
+    reg w_en;
+    initial w_en = 0;
+
+    wire [7:0] rom_d_out;
+
+    block_ram my_ram(
+        .din(z80_d),
+        .addr(z80_a[13:0]),
+        .write_en(w_en),
+        .clk(clk),
+        .dout(data_ram)
+    );
+
+    async_rom my_rom(
+        .addr(z80_a[9:0]),
+        .data(data_rom)
+    );
+
+    assign rom_d_out = (z80_a < (1024 * 15)) ? data_ram: data_rom;
+
     localparam Z80_IO_ADDR = 16'd12345;
+    localparam Z80_ACTIVATE_SHADOW_ROM = 8'd85;
+
     localparam D_IN = 1'b1; // from Z80 to FPGA
     localparam D_OUT = 1'b0; // from FPGA to Z80
 
@@ -26,6 +50,7 @@ module z80_addr_decode (input [15:0] z80_a,
 
     initial begin
         z80_d_oe <= 1'b0;
+        z80_romcs <= 1'b0;
         spi_to_z80[0] <= 8'd111;
         spi_to_z80[1] <= 8'd122;
         spi_to_z80[2] <= 8'd133;
@@ -34,7 +59,6 @@ module z80_addr_decode (input [15:0] z80_a,
         spi_to_z80[5] <= 8'd166;
         spi_to_z80[6] <= 8'd177;
         spi_to_z80[7] <= 8'd188;
-        test_led <= 1'b1;
         z80_to_spi[0] <= 8'd11;
         z80_to_spi[1] <= 8'd22;
         z80_to_spi[2] <= 8'd33;
@@ -76,12 +100,26 @@ module z80_addr_decode (input [15:0] z80_a,
                     || myIoAddr6 == 1'b1
                     || myIoAddr7 == 1'b1;
 
-    assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? D_OUT : D_IN;
+    wire myRom = (z80_iorq == 1'b1)
+                  && (z80_mreq == 1'b0)
+                  //&& (z80_m1 == 1'b1)
+                  && (z80_a < (1024 * 16));
 
-    assign z80_d = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? (z80_d_out) : 8'bZ;
+    //assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? D_OUT : D_IN;
+    assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && ((myIoAddr == 1'b1) || ((myRom == 1'b1) && (z80_romcs == 1'b1)))) ? D_OUT : D_IN;
+
+    //assign z80_d = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? z80_d_out : 8'bZ;
+    assign z80_d = (z80_rd == 1'b0 && z80_wr == 1'b1 && ((myIoAddr == 1'b1) || ((myRom == 1'b1) && (z80_romcs == 1'b1)))) ? ((myRom == 1'b1) ? rom_d_out : z80_d_out): 8'bZ;
 
     always @(posedge clk)
     begin
+        if (z80_m1 == 1'b0 && z80_rd == 1'b0 && z80_wr == 1'b1 && z80_a == 16'h0000 && z80_iorq == 1'b1 && z80_mreq == 1'b0) begin
+            if (z80_to_spi[0] == Z80_ACTIVATE_SHADOW_ROM) begin
+                z80_romcs <= 1'b1;
+            end else begin
+                z80_romcs <= 1'b0;
+            end
+        end
         if (z80_rd == 1'b1 && z80_wr == 1'b0) begin
             if (myIoAddr0) z80_to_spi[0] <= z80_d;
             if (myIoAddr1) z80_to_spi[1] <= z80_d;
@@ -198,7 +236,7 @@ module z80_addr_decode (input [15:0] z80_a,
             end
             SM_SET_SPICR2 : begin
                 sbadr <= SPICR2;
-                sbdati <= 8'h01;
+                sbdati <= 8'h00;
                 sbrw <= SB_WR;
             end
             SM_SET_SPIBR : begin
@@ -247,16 +285,13 @@ module z80_addr_decode (input [15:0] z80_a,
                             spi_sm_state <= SM_TRANSMIT;
                         end
                         if (sbdato[SPISR_TRDY] == 1) begin
-                            test_led <= 1'b0;
                             spi_sm_state <= SM_TRANSMIT;
                         end else if (sbdato[SPISR_RRDY] == 1) begin
-                            test_led <= 1'b0;
                             spi_sm_state <= SM_RECEIVE;
                         end
                     end else begin
                         if (spi_old_ss == 0) begin
                             spi_old_ss <= 1;
-                            test_led <= 1'b1;
                             spi_tx_index <= 0;
                             spi_sm_state <= SM_TRANSMIT;
                         end
