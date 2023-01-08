@@ -139,7 +139,6 @@ static int spi_xfer(struct ftdi_context *ftdic, uint8_t *tx, uint8_t *rx, int le
     int rc = 0;
     const uint8_t cmd = (rx ? MPSSE_DO_READ : 0)
                         | MPSSE_DO_WRITE
-                        | MPSSE_LSB
                         | MPSSE_WRITE_NEG;
 
     rc = ftdi_send_cmd_2arg(ftdic, cmd, len - 1, (len - 1) >> 8);
