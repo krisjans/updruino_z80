@@ -1,12 +1,17 @@
-all: clean rom_1k.txt rom_15k.txt
-	apio clean
-	apio verify
-	apio build -v
+all: build
 	apio upload -s
 	make -C test_tool
 
 sim:
 	apio sim
+
+build: clean rom_1k.txt rom_15k.txt
+	rm -f apio_log.txt
+	apio verify | tee apio_log.txt
+	apio build -v | tee apio_log.txt
+	@grep -i "warning" apio_log.txt || echo "no warnings"
+	@grep -i "error" apio_log.txt || echo "no errors"
+	@grep "Device utilisation:" -A 15 apio_log.txt
 
 clean:
 	apio clean
