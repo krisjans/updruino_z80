@@ -5,6 +5,9 @@ all: clean rom_1k.txt rom_15k.txt
 	apio upload -s
 	make -C test_tool
 
+sim:
+	apio sim
+
 clean:
 	apio clean
 	make -C test_tool clean

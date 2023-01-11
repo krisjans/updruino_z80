@@ -2,4 +2,5 @@
 *.asc
 *.bin
 *.out
+*.vcd
 .sconsign.dblite

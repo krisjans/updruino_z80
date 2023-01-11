@@ -1,4 +1,4 @@
-module z80_addr_decode_top (input [15:0] z80_a,
+module z80_addr_decode (input [15:0] z80_a,
                         inout [7:0] z80_d,
                         input z80_rd,
                         input z80_wr,
@@ -11,11 +11,8 @@ module z80_addr_decode_top (input [15:0] z80_a,
                         input spi_sck,
                         input spi_ss,
                         input spi_si,
-                        output spi_so);
-
-    wire clk;
-    SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
-    defparam inthosc.CLKHF_DIV = "0b01";
+                        output spi_so,
+                        input clk);
 
     wire [7:0] data_rom;
     wire [7:0] data_ram;
