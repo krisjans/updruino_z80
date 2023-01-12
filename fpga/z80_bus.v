@@ -20,10 +20,13 @@ module z80_addr_decode (input [15:0] z80_a,
     initial w_en = 0;
 
     wire [7:0] rom_d_out;
+    wire [13:0] ram_addr;
+    assign ram_addr[9:0] = z80_a[9:0];
+    assign ram_addr[13:10] = z80_a[13:10] - 1;
 
     block_ram my_ram(
         .din(z80_d),
-        .addr(z80_a[13:0]),
+        .addr(ram_addr),
         .write_en(w_en),
         .clk(clk),
         .dout(data_ram)
@@ -34,7 +37,7 @@ module z80_addr_decode (input [15:0] z80_a,
         .data(data_rom)
     );
 
-    assign rom_d_out = (z80_a < (1024 * 15)) ? data_ram: data_rom;
+    assign rom_d_out = (z80_a[15:10] == 6'b0) ? data_rom : data_ram;
 
     localparam Z80_IO_ADDR = 16'd12345;
     localparam Z80_ACTIVATE_SHADOW_ROM = 8'd85;
@@ -100,7 +103,7 @@ module z80_addr_decode (input [15:0] z80_a,
     wire myRom = (z80_iorq == 1'b1)
                   && (z80_mreq == 1'b0)
                   //&& (z80_m1 == 1'b1)
-                  && (z80_a < (1024 * 16));
+                  && (z80_a[15:14] == 2'b0);
 
     //assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? D_OUT : D_IN;
     assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && ((myIoAddr == 1'b1) || ((myRom == 1'b1) && (z80_romcs == 1'b1)))) ? D_OUT : D_IN;
