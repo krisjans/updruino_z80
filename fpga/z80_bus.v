@@ -70,7 +70,6 @@ module z80_addr_decode (input [15:0] z80_a,
     end
 
     wire ioAddr = z80_iorq == 1'b0
-                  && z80_mreq == 1'b1
                   && z80_m1 == 1'b1;
     wire myIoAddr0 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd0);
     wire myIoAddr1 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd2);
@@ -100,9 +99,7 @@ module z80_addr_decode (input [15:0] z80_a,
                     || myIoAddr6 == 1'b1
                     || myIoAddr7 == 1'b1;
 
-    wire myRom = (z80_iorq == 1'b1)
-                  && (z80_mreq == 1'b0)
-                  //&& (z80_m1 == 1'b1)
+    wire myRom = z80_mreq == 1'b0
                   && (z80_a[15:14] == 2'b0);
 
     //assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? D_OUT : D_IN;
