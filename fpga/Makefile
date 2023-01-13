@@ -1,3 +1,5 @@
+SHELL=/bin/bash -o pipefail
+
 all: build
 	apio upload -s
 	make -C test_tool
