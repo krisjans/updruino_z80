@@ -51,12 +51,15 @@ module z80_addr_decode (input [15:0] z80_a,
     reg [7:0] spi_to_z80[7:0];
     reg [7:0] z80_to_spi[7:0];
 
+    localparam ZX_ROM_DISABLE = 1'b0;
+    localparam ZX_ROM_ENABLE = 1'b1;
+
     initial begin
         /* z80_d_oe <= 1'b0; */
         ram_cs <= 1;
         ram_a13 <= 0;
         ram_a14 <= 0;
-        z80_romcs <= 1'b0;
+        z80_romcs <= ZX_ROM_DISABLE;
         spi_to_z80[0] <= 8'd111;
         spi_to_z80[1] <= 8'd122;
         spi_to_z80[2] <= 8'd133;
@@ -109,18 +112,18 @@ module z80_addr_decode (input [15:0] z80_a,
                   && (z80_a[15:14] == 2'b0);
 
     //assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? D_OUT : D_IN;
-    assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && ((myIoAddr == 1'b1) || ((myRom == 1'b1) && (z80_romcs == 1'b1)))) ? D_OUT : D_IN;
+    assign z80_d_dir = (z80_rd == 1'b0 && z80_wr == 1'b1 && ((myIoAddr == 1'b1) || ((myRom == 1'b1) && (z80_romcs == ZX_ROM_DISABLE)))) ? D_OUT : D_IN;
 
     //assign z80_d = (z80_rd == 1'b0 && z80_wr == 1'b1 && myIoAddr == 1'b1) ? z80_d_out : 8'bZ;
-    assign z80_d = (z80_rd == 1'b0 && z80_wr == 1'b1 && ((myIoAddr == 1'b1) || ((myRom == 1'b1) && (z80_romcs == 1'b1)))) ? ((myRom == 1'b1) ? rom_d_out : z80_d_out): 8'bZ;
+    assign z80_d = (z80_rd == 1'b0 && z80_wr == 1'b1 && ((myIoAddr == 1'b1) || ((myRom == 1'b1) && (z80_romcs == ZX_ROM_DISABLE)))) ? ((myRom == 1'b1) ? rom_d_out : z80_d_out): 8'bZ;
 
     always @(posedge clk)
     begin
         if (z80_m1 == 1'b0 && z80_rd == 1'b0 && z80_wr == 1'b1 && z80_a == 16'h0000 && z80_iorq == 1'b1 && z80_mreq == 1'b0) begin
             if (z80_to_spi[0] == Z80_ACTIVATE_SHADOW_ROM) begin
-                z80_romcs <= 1'b1;
+                z80_romcs <= ZX_ROM_DISABLE;
             end else begin
-                z80_romcs <= 1'b0;
+                z80_romcs <= ZX_ROM_ENABLE;
             end
         end
         if (z80_rd == 1'b1 && z80_wr == 1'b0) begin
