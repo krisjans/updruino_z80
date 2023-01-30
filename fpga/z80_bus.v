@@ -5,7 +5,10 @@ module z80_addr_decode (input [15:0] z80_a,
                         input z80_m1,
                         input z80_iorq,
                         input z80_mreq,
-                        output reg z80_d_oe,
+                        /* output reg z80_d_oe,*/
+                        output reg ram_a13,
+                        output reg ram_a14,
+                        output reg ram_cs,
                         output z80_d_dir,
                         output reg z80_romcs,
                         input spi_sck,
@@ -49,7 +52,10 @@ module z80_addr_decode (input [15:0] z80_a,
     reg [7:0] z80_to_spi[7:0];
 
     initial begin
-        z80_d_oe <= 1'b0;
+        /* z80_d_oe <= 1'b0; */
+        ram_cs <= 1;
+        ram_a13 <= 0;
+        ram_a14 <= 0;
         z80_romcs <= 1'b0;
         spi_to_z80[0] <= 8'd111;
         spi_to_z80[1] <= 8'd122;
