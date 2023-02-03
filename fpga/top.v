@@ -17,6 +17,9 @@ module top(input [15:0] z80_a,
             input spi_si,
             output spi_so);
 
+wire [8*8-1:0] spi_to_z80_flat;
+wire [8*8-1:0] z80_to_spi_flat;
+
 wire clk;
 SB_HFOSC inthosc(.CLKHFPU(1'b1), .CLKHFEN(1'b1), .CLKHF(clk));
 defparam inthosc.CLKHF_DIV = "0b01";
@@ -67,10 +70,17 @@ z80_addr_decode z80(.z80_a(z80_a_fo),
                     .ram_a14(ram_a14),
                     .z80_d_dir(z80_d_dir),
                     .z80_romcs(z80_romcs),
+                    .spi_to_z80_flat(spi_to_z80_flat),
+                    .z80_to_spi_flat(z80_to_spi_flat),
+                    .clk(clk));
+
+spi_mbox spi_to_z80(
                     .spi_sck(spi_sck),
                     .spi_ss(spi_ss),
                     .spi_si(spi_si),
                     .spi_so(spi_so),
+                    .spi_to_z80_flat(spi_to_z80_flat),
+                    .z80_to_spi_flat(z80_to_spi_flat),
                     .clk(clk));
 
 endmodule
