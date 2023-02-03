@@ -26,14 +26,53 @@ module z80_addr_decode (input [15:0] z80_a,
     wire [13:0] ram_addr;
     assign ram_addr[9:0] = z80_a[9:0];
     assign ram_addr[13:10] = z80_a[13:10] - 1;
-
+    reg [7:0] z80_d_f = 0;
+    reg [7:0] z80_d_f2 = 0;
+    reg z80_wr_f = 1;
+    reg z80_wr_f2 = 1;
+    reg z80_wr_f3 = 1;
+    reg [16:0] z80_a_f = 0;
+    reg [16:0] z80_a_f2 = 0;
+    reg [13:0] ram_addr_f = 0;
+    reg [13:0] ram_addr_f2 = 0;
+    reg myRom_f = 0;
+    reg myRom_f2 = 0;
+    reg z80_romcs_f = 0;
+    reg z80_romcs_f2 = 0;
+    reg [13:0] ram_addr_fo = 0;
+    reg [7:0] z80_d_fo = 0;
     block_ram my_ram(
-        .din(z80_d),
+        .din(z80_d_fo),
         .addr(ram_addr),
+        .addr_w(ram_addr_fo),
         .write_en(w_en),
         .clk(clk),
         .dout(data_ram)
     );
+    always @(posedge clk)
+    begin
+        z80_d_f <= z80_d;
+        z80_d_f2 <= z80_d_f;
+        z80_a_f <= z80_a;
+        z80_a_f2 <= z80_a_f;
+        ram_addr_f <= ram_addr;
+        ram_addr_f2 <= ram_addr_f;
+        z80_wr_f3 <= z80_wr_f2;
+        z80_wr_f2 <= z80_wr_f;
+        z80_wr_f <= z80_wr;
+        myRom_f <= myRom;
+        myRom_f2 <= myRom_f;
+        z80_romcs_f <= z80_romcs;
+        z80_romcs_f2 <= z80_romcs_f;
+
+        if (z80_wr_f3 == 1 && z80_wr_f2 == 0 && myRom_f2 == 1'b1 && z80_romcs_f2 == ZX_ROM_DISABLE && z80_a_f2 > 16'h1fff) begin
+            w_en <= 1;
+            z80_d_fo <= z80_d_f2;
+            ram_addr_fo <= ram_addr_f2;
+        end else begin
+            w_en <= 0;
+        end
+    end
 
     async_rom my_rom(
         .addr(z80_a[9:0]),

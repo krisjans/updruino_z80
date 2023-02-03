@@ -1,7 +1,8 @@
-module block_ram (din, addr, write_en, clk, dout);// 512x8
+module block_ram (din, addr_w, addr, write_en, clk, dout);// 512x8
 parameter addr_width = 14;
 parameter data_width = 8;
 input [addr_width-1:0] addr;
+input [addr_width-1:0] addr_w;
 input [data_width-1:0] din;
 input write_en, clk;
 output [data_width-1:0] dout;
@@ -15,7 +16,7 @@ end
 always @(posedge clk)
 begin
     if (write_en)
-        memram[(addr)] <= din;
+        memram[(addr_w)] <= din;
     dout = memram[addr];
 end
 endmodule
