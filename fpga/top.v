@@ -5,6 +5,7 @@ module top(input [15:0] z80_a,
             input z80_m1,
             input z80_iorq,
             input z80_mreq,
+            input z80_clk,
             /*output z80_d_oe,*/
             output ram_a13,
             output ram_a14,
