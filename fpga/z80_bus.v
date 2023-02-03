@@ -1,4 +1,15 @@
-module z80_addr_decode (input [15:0] z80_a,
+module z80_addr_decode #(
+                            parameter
+                                IO_0 = 16'd12345,
+                                IO_1 = 16'd12347,
+                                IO_2 = 16'd12349,
+                                IO_3 = 16'd12351,
+                                IO_4 = 16'd12353,
+                                IO_5 = 16'd12355,
+                                IO_6 = 16'd12357,
+                                IO_7 = 16'd12359
+                        )
+                       (input [15:0] z80_a,
                         inout [7:0] z80_d,
                         input z80_rd,
                         input z80_wr,
@@ -87,7 +98,6 @@ module z80_addr_decode (input [15:0] z80_a,
 
     assign rom_d_out = (z80_a[15:10] == 6'b0) ? data_rom : data_ram;
 
-    localparam Z80_IO_ADDR = 16'd12345;
     localparam Z80_ACTIVATE_SHADOW_ROM = 8'd85;
 
     localparam D_IN = 1'b1; // from Z80 to FPGA
@@ -114,14 +124,14 @@ module z80_addr_decode (input [15:0] z80_a,
 
     wire ioAddr = z80_iorq == 1'b0
                   && z80_m1 == 1'b1;
-    wire myIoAddr0 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd0);
-    wire myIoAddr1 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd2);
-    wire myIoAddr2 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd4);
-    wire myIoAddr3 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd6);
-    wire myIoAddr4 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd8);
-    wire myIoAddr5 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd10);
-    wire myIoAddr6 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd12);
-    wire myIoAddr7 = ioAddr && z80_a == (Z80_IO_ADDR + 16'd14);
+    wire myIoAddr0 = ioAddr && z80_a == IO_0;
+    wire myIoAddr1 = ioAddr && z80_a == IO_1;
+    wire myIoAddr2 = ioAddr && z80_a == IO_2;
+    wire myIoAddr3 = ioAddr && z80_a == IO_3;
+    wire myIoAddr4 = ioAddr && z80_a == IO_4;
+    wire myIoAddr5 = ioAddr && z80_a == IO_5;
+    wire myIoAddr6 = ioAddr && z80_a == IO_6;
+    wire myIoAddr7 = ioAddr && z80_a == IO_7;
 
     wire [7:0] z80_d_out = myIoAddr0 == 1'b1 ? spi_to_z80[0]
                             : myIoAddr1 == 1'b1 ? spi_to_z80[1]
