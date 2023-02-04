@@ -57,7 +57,23 @@ always @(posedge clk) begin
     end
 end
 
-z80_addr_decode z80(.z80_a(z80_a_fo),
+`define REPLACE_WHOLE_ROM
+//`define PLUS_D
+
+`ifdef PLUS_D
+    defparam z80.ADDR_SHADOW_0 = 16'h0008; // zx-spectrum basic error
+    defparam z80.ADDR_SHADOW_1 = 16'h003A; // zx-spectrum basic keyboard scanning
+    defparam z80.ADDR_SHADOW_2 = 16'h0066; // z80 NMI interrupt
+    z80_addr_decode #(16'd231, 7, 16'hE3, 7, 16'hEB, 7, 16'hEF, 7, 16'hF3, 7, 16'hFB, 7)
+`elsif REPLACE_WHOLE_ROM
+    defparam z80.ADDR_SHADOW_0 = 16'h0000; // reset vector
+    z80_addr_decode #()
+`else
+    defparam z80.ADDR_SHADOW_0 = 16'h0008; // zx-spectrum basic error
+    defparam z80.ADDR_SHADOW_2 = 16'h0066; // z80 NMI interrupt
+    z80_addr_decode #(16'd231, 7)
+`endif
+                z80(.z80_a(z80_a_fo),
                     .z80_d(z80_d),
                     .z80_rd(z80_rd_fo),
                     .z80_wr(z80_wr_fo),

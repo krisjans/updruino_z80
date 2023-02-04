@@ -1,5 +1,7 @@
 module z80_addr_decode #(
                             parameter
+                                IO_MAP_SHADOW = 16'd12343,
+                                IO_MAP_SHADOW_MSB = 15,
                                 IO_0 = 16'd12345,
                                 IO_0_MSB = 15,
                                 IO_1 = 16'd12347,
@@ -15,7 +17,11 @@ module z80_addr_decode #(
                                 IO_6 = 16'd12357,
                                 IO_6_MSB = 15,
                                 IO_7 = 16'd12359,
-                                IO_7_MSB = 15
+                                IO_7_MSB = 15,
+                                ADDR_SHADOW_0 = -1,
+                                ADDR_SHADOW_1 = -1,
+                                ADDR_SHADOW_2 = -1,
+                                ADDR_SHADOW_3 = -1
                         )
                        (input [15:0] z80_a,
                         inout [7:0] z80_d,
@@ -106,20 +112,20 @@ module z80_addr_decode #(
 
     assign rom_d_out = (z80_a[15:10] == 6'b0) ? data_rom : data_ram;
 
-    localparam Z80_ACTIVATE_SHADOW_ROM = 8'd85;
-
     localparam D_IN = 1'b1; // from Z80 to FPGA
     localparam D_OUT = 1'b0; // from FPGA to Z80
 
     localparam ZX_ROM_DISABLE = 1'b0;
     localparam ZX_ROM_ENABLE = 1'b1;
 
+    reg page_in_on_reset;
     initial begin
+        page_in_on_reset = 0;
         /* z80_d_oe <= 1'b0; */
         ram_cs <= 1;
         ram_a13 <= 0;
         ram_a14 <= 0;
-        z80_romcs <= ZX_ROM_DISABLE;
+        z80_romcs <= ZX_ROM_ENABLE;
         z80_to_spi[0] <= 8'd11;
         z80_to_spi[1] <= 8'd22;
         z80_to_spi[2] <= 8'd33;
@@ -171,13 +177,6 @@ module z80_addr_decode #(
 
     always @(posedge clk)
     begin
-        if (z80_m1 == 1'b0 && z80_rd == 1'b0 && z80_wr == 1'b1 && z80_a == 16'h0000 && z80_iorq == 1'b1 && z80_mreq == 1'b0) begin
-            if (z80_to_spi[0] == Z80_ACTIVATE_SHADOW_ROM) begin
-                z80_romcs <= ZX_ROM_DISABLE;
-            end else begin
-                z80_romcs <= ZX_ROM_ENABLE;
-            end
-        end
         if (z80_rd == 1'b1 && z80_wr == 1'b0) begin
             if (myIoAddr0) z80_to_spi[0] <= z80_d;
             if (myIoAddr1) z80_to_spi[1] <= z80_d;
@@ -187,6 +186,41 @@ module z80_addr_decode #(
             if (myIoAddr5) z80_to_spi[5] <= z80_d;
             if (myIoAddr6) z80_to_spi[6] <= z80_d;
             if (myIoAddr7) z80_to_spi[7] <= z80_d;
+        end
+    end
+
+    wire ioShadow = ioAddr && (z80_a[IO_MAP_SHADOW_MSB:0] == IO_MAP_SHADOW);
+
+    wire z80fetchInstruction = (z80_m1 == 1'b0)
+                                && (z80_rd == 1'b0)
+                                && (z80_wr == 1'b1)
+                                && (z80_iorq == 1'b1)
+                                && (z80_mreq == 1'b0);
+
+    always @(posedge clk)
+    begin
+        if (ADDR_SHADOW_0 != -1)
+            if (z80fetchInstruction && (z80_a == ADDR_SHADOW_0)) begin
+                z80_romcs <= ZX_ROM_DISABLE;
+            end
+        if (ADDR_SHADOW_1 != -1)
+            if (z80fetchInstruction && (z80_a == ADDR_SHADOW_1)) begin
+                z80_romcs <= ZX_ROM_DISABLE;
+            end
+        if (ADDR_SHADOW_2 != -1)
+            if (z80fetchInstruction && (z80_a == ADDR_SHADOW_2)) begin
+                z80_romcs <= ZX_ROM_DISABLE;
+            end
+        if (ADDR_SHADOW_3 != -1)
+            if (z80fetchInstruction && (z80_a == ADDR_SHADOW_3)) begin
+                z80_romcs <= ZX_ROM_DISABLE;
+            end
+
+        if ((z80_rd == 1'b1) && (z80_wr == 1'b0)) begin
+            if (ioShadow) z80_romcs <= ZX_ROM_ENABLE;
+        end
+        if ((z80_rd == 1'b0) && (z80_wr == 1'b1)) begin
+            if (ioShadow) z80_romcs <= ZX_ROM_DISABLE;
         end
     end
 
