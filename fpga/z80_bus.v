@@ -1,13 +1,21 @@
 module z80_addr_decode #(
                             parameter
                                 IO_0 = 16'd12345,
+                                IO_0_MSB = 15,
                                 IO_1 = 16'd12347,
+                                IO_1_MSB = 15,
                                 IO_2 = 16'd12349,
+                                IO_2_MSB = 15,
                                 IO_3 = 16'd12351,
+                                IO_3_MSB = 15,
                                 IO_4 = 16'd12353,
+                                IO_4_MSB = 15,
                                 IO_5 = 16'd12355,
+                                IO_5_MSB = 15,
                                 IO_6 = 16'd12357,
-                                IO_7 = 16'd12359
+                                IO_6_MSB = 15,
+                                IO_7 = 16'd12359,
+                                IO_7_MSB = 15
                         )
                        (input [15:0] z80_a,
                         inout [7:0] z80_d,
@@ -124,14 +132,14 @@ module z80_addr_decode #(
 
     wire ioAddr = z80_iorq == 1'b0
                   && z80_m1 == 1'b1;
-    wire myIoAddr0 = ioAddr && z80_a == IO_0;
-    wire myIoAddr1 = ioAddr && z80_a == IO_1;
-    wire myIoAddr2 = ioAddr && z80_a == IO_2;
-    wire myIoAddr3 = ioAddr && z80_a == IO_3;
-    wire myIoAddr4 = ioAddr && z80_a == IO_4;
-    wire myIoAddr5 = ioAddr && z80_a == IO_5;
-    wire myIoAddr6 = ioAddr && z80_a == IO_6;
-    wire myIoAddr7 = ioAddr && z80_a == IO_7;
+    wire myIoAddr0 = ioAddr && (z80_a[IO_0_MSB:0] == IO_0[IO_0_MSB:0]);
+    wire myIoAddr1 = ioAddr && (z80_a[IO_1_MSB:0] == IO_1[IO_0_MSB:0]);
+    wire myIoAddr2 = ioAddr && (z80_a[IO_2_MSB:0] == IO_2[IO_0_MSB:0]);
+    wire myIoAddr3 = ioAddr && (z80_a[IO_3_MSB:0] == IO_3[IO_0_MSB:0]);
+    wire myIoAddr4 = ioAddr && (z80_a[IO_4_MSB:0] == IO_4[IO_0_MSB:0]);
+    wire myIoAddr5 = ioAddr && (z80_a[IO_5_MSB:0] == IO_5[IO_0_MSB:0]);
+    wire myIoAddr6 = ioAddr && (z80_a[IO_6_MSB:0] == IO_6[IO_0_MSB:0]);
+    wire myIoAddr7 = ioAddr && (z80_a[IO_7_MSB:0] == IO_7[IO_0_MSB:0]);
 
     wire [7:0] z80_d_out = myIoAddr0 == 1'b1 ? spi_to_z80[0]
                             : myIoAddr1 == 1'b1 ? spi_to_z80[1]
