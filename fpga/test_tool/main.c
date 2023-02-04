@@ -197,7 +197,7 @@ int main()
         return rc;
     }
     for (size_t i = 0; i < 8; i++) {
-        printf("got 0x%02x\n", rx[i]);
+        printf("got 0x%02x %3d\n", rx[i], rx[i]);
     }
 
     rc = spi_cs_hi(&ftdic);
