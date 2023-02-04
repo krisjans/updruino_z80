@@ -5,6 +5,7 @@ module async_rom (
 
     localparam ROM_SIZE = 1024;
 
+    //(* logic_block *)
     reg [7:0] memory [ROM_SIZE - 1:0];
 
     initial begin
